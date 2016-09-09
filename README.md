@@ -4,7 +4,7 @@ A hearbeat implementation on a drone.
 
 #Quality Attributes
 - RQ1: The system shall be able to communicate. If the drone communication is lost, the drone shall be able to go back to the previous known locations.
-- RQ2: The system shall be able to provide backup process when the drone flight system is down so that it can control the movement of the drone with in the flying zone untill the main process back to work again
+- RQ2: The system shall be able to provide backup process when the drone flight system is down so that it can control the movement of the drone with in the flying zone untill the main process back to running again
 
 #Features
 - The drone sends its location to the controller
