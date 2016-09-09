@@ -11,7 +11,8 @@ A hearbeat implementation on a drone.
 - The controller share listening to the notifications and location from the drone
 
 #Installation & Running
-- Clone the repository.
+- Clone the repository
+- Navigate to src directory
 - javac *.java
 - java RemoteController
 
