@@ -1,6 +1,6 @@
 #Heartbeat
 
-A simple GUI hearbeat implementation on a drone using Java.
+A hearbeat implementation on a drone.
 
 #Feature
 - The drone sends its location to the controller
