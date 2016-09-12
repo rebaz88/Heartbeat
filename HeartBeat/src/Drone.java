@@ -5,6 +5,11 @@ import java.awt.event.KeyListener;
 import java.awt.geom.Ellipse2D;
 import java.util.ArrayList;
 
+/**
+ * Drone main file
+ * @author rebaz
+ *
+ */
 public class Drone extends JComponent {
 
 	/**
