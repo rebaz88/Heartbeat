@@ -16,7 +16,7 @@ A hearbeat implementation on a drone.
 - javac *.java
 - java RemoteController
 
-######Open a new terminal browse to the same directory
+######Open a new terminal navigate to src directory again
 - java DroneStarter
 
 #Usage:
