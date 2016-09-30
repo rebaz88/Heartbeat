@@ -1,6 +1,8 @@
 
 import java.io.*;
+
 import java.net.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author Rebaz
@@ -9,11 +11,51 @@ import java.net.*;
 
 public class RemoteController {
 	static int DEFAULT_PORT = 7475;
-
-	public static void main(String[] args) {
+	public static void main(String[] args){
+		
+		Thread terminator = new Thread (){
+			
+			public void run() {
+				int randomTerminator = ThreadLocalRandom.current().nextInt(10, 15);
+		    	System.out.println("Time to terminate the system is " + randomTerminator + " seconds");
+		    	long endTime = System.currentTimeMillis() + (randomTerminator * 1000);
+		    	while(System.currentTimeMillis() < endTime) {
+		    		try {
+		    			Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+		    	}
+		    	
+		    	main(args);
+		    	
+			}
+		};
+		terminator.start();
+		
+		
 		int port = (args.length > 0) ? Integer.parseInt(args[0]) : DEFAULT_PORT;
+		
 		Reciever reciever = new Reciever(port);
 		reciever.start();
+	}
+}
+
+class Terminator extends Thread {
+	
+	public void run() {
+		int randomTerminator = ThreadLocalRandom.current().nextInt(3, 5);
+    	System.out.println("Time to terminate the system is " + randomTerminator + " seconds");
+    	long endTime = System.currentTimeMillis() + (randomTerminator * 1000);
+    	while(System.currentTimeMillis() < endTime) {
+    		try {
+    			Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+    	}
+    	
+    	
 	}
 }
 
@@ -25,7 +67,7 @@ class Reciever {
 		IO = new ServerNetWorkIO(port);
 	}
 
-	void start() {
+	void start() { 
 		System.out.println("Connecting to drone ...");
 		while (isAlive) {
 			DatagramPacket packet = IO.getPacket();
@@ -33,6 +75,7 @@ class Reciever {
 				ProccessInput(packet);
 			}
 		}
+		System.out.println("System exited ...");
 	}
 
 	/**
@@ -56,12 +99,12 @@ class Reciever {
 		IO.sendPacket(
 				new DatagramPacket(result.getBytes(), result.getBytes().length, packet.getAddress(), packet.getPort()));
 
-		try {
-			Thread.sleep(2000); // check every two seconds
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+//		try {
+//			Thread.sleep(2000); // check every two seconds
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
 
 	}
 }
