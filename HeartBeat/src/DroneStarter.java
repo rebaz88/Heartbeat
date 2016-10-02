@@ -13,8 +13,8 @@ public class DroneStarter {
 
 	public static void main(String[] args) throws Exception {
 
-		int firstProcessDeath = ThreadLocalRandom.current().nextInt(10, 15);
-		int secondProcessDeath = ThreadLocalRandom.current().nextInt(20, 25);
+		int firstProcessDeath = ThreadLocalRandom.current().nextInt(20, 25);
+		int secondProcessDeath = ThreadLocalRandom.current().nextInt(40, 45);
 
 		SpaceUI frame = new SpaceUI();
 		ZoneModel zm = new ZoneModel(frame.getWidth(), frame.getHeight());
