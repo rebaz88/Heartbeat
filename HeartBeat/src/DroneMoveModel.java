@@ -1,10 +1,13 @@
 
 public class DroneMoveModel {
-
+	
+	public int DRONE_W = 30;
+	public int DRONE_H = 40;
+	
 	private int x = 0;
 	private int y = 0;
-	private int velX = 1;
-	private int velY = 1;
+	private int velX = 0;
+	private int velY = 0;
 
 	private int distanceTraveled = 0;
 	private boolean robotMoving = true;
@@ -54,6 +57,10 @@ public class DroneMoveModel {
 	public void setVelX() {
 		this.velX = -velX;
 	}
+	
+	public void setVelX(int val) {
+		this.velX = val;
+	}
 
 	public int getVelY() {
 		return velY;
@@ -61,6 +68,10 @@ public class DroneMoveModel {
 
 	public void setVelY() {
 		this.velY = -velY;
+	}
+	
+	public void setVelY(int val) {
+		this.velY = val;
 	}
 
 	public int getDistanceTraveled() {

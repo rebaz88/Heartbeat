@@ -2,7 +2,6 @@
 import java.io.*;
 
 import java.net.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * @author Rebaz
@@ -10,72 +9,42 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 
 public class RemoteController {
-	static int DEFAULT_PORT = 7475;
-	public static void main(String[] args){
-		
-		Thread terminator = new Thread (){
-			
-			public void run() {
-				int randomTerminator = ThreadLocalRandom.current().nextInt(10, 15);
-		    	System.out.println("Time to terminate the system is " + randomTerminator + " seconds");
-		    	long endTime = System.currentTimeMillis() + (randomTerminator * 1000);
-		    	while(System.currentTimeMillis() < endTime) {
-		    		try {
-		    			Thread.sleep(1000);
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-		    	}
-		    	
-		    	main(args);
-		    	
-			}
-		};
-		terminator.start();
-		
-		
-		int port = (args.length > 0) ? Integer.parseInt(args[0]) : DEFAULT_PORT;
-		
-		Reciever reciever = new Reciever(port);
-		reciever.start();
+
+	static int HEARTBEAT_PORT = 7475;
+	static int PROCESS_PORT = 7576;
+
+	public static void main(String[] args) {
+
+		Reciever secondProcess = new Reciever(PROCESS_PORT, new SecondProcess());
+		secondProcess.start();
+
+		ProcessMonitorUI pmu = new ProcessMonitorUI();
+		pmu.setVisible(true);
+		pmu.pmc.repaint();
+
+		Reciever hbRreciever = new Reciever(HEARTBEAT_PORT, new HearBeatReciver(pmu));
+		hbRreciever.start();
+
 	}
 }
 
-class Terminator extends Thread {
-	
-	public void run() {
-		int randomTerminator = ThreadLocalRandom.current().nextInt(3, 5);
-    	System.out.println("Time to terminate the system is " + randomTerminator + " seconds");
-    	long endTime = System.currentTimeMillis() + (randomTerminator * 1000);
-    	while(System.currentTimeMillis() < endTime) {
-    		try {
-    			Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-    	}
-    	
-    	
-	}
-}
-
-class Reciever {
+class Reciever extends Thread {
 	ServerNetWorkIO IO;
-	boolean isAlive = true;
+	ProcessInput pr;
 
-	public Reciever(int port) {
+	public Reciever(int port, ProcessInput pr) {
 		IO = new ServerNetWorkIO(port);
+		this.pr = pr;
 	}
 
-	void start() { 
+	public void run() {
 		System.out.println("Connecting to drone ...");
-		while (isAlive) {
+		while (true) {
 			DatagramPacket packet = IO.getPacket();
 			if (packet != null) {
 				ProccessInput(packet);
 			}
 		}
-		System.out.println("System exited ...");
 	}
 
 	/**
@@ -85,27 +54,10 @@ class Reciever {
 	 */
 
 	public void ProccessInput(DatagramPacket packet) {
-		String packetMessage = new String(packet.getData());
-		String message = packetMessage.substring(packetMessage.indexOf(':') + 1, packetMessage.indexOf(0));
-		String result = "";
-		if (message.equals("setup")) {
-			System.out.println("Connection established with the drone...");
-			result = "connected";
-		} else {
-			System.out.println(message);
-			result = "Message:inzone";
-		}
 
+		String result = pr.ProcessInput(packet);
 		IO.sendPacket(
 				new DatagramPacket(result.getBytes(), result.getBytes().length, packet.getAddress(), packet.getPort()));
-
-//		try {
-//			Thread.sleep(2000); // check every two seconds
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-
 	}
 }
 
@@ -149,4 +101,89 @@ class ServerNetWorkIO {
 			System.err.println("Error: error while sending packet");
 		}
 	}
+}
+
+interface ProcessInput {
+	public String ProcessInput(DatagramPacket packet);
+}
+
+class SecondProcess implements ProcessInput {
+
+	ObstacleDetectModel obsModel;
+	boolean isRunning = true;
+
+	SecondProcess() {
+		obsModel = new ObstacleDetectModel();
+	}
+
+	@Override
+	public String ProcessInput(DatagramPacket packet) {
+
+		String packetMessage = new String(packet.getData());
+		String message = packetMessage.substring(packetMessage.indexOf(':') + 1, packetMessage.indexOf(0));
+		String result = "";
+		if (message.equals("setup")) {
+			System.out.println("Connection established with the drone...");
+			result = "Message:connected";
+		} else {
+			obsModel.deSerializeData(message);
+
+			if (detectedObstacle())
+				result = "ApproachingDrone";
+			else
+				result = "NotApproachingDrone";
+
+		}
+
+		return result;
+	}
+
+	public boolean detectedObstacle() {
+		boolean isDetected = false;
+		if (ObstacleDetectorCalculator.rectOverlap(obsModel.getSaMinX(), obsModel.getSaMinY(), obsModel.getSaMaxX(),
+				obsModel.getSaMaxY(), obsModel.getDrMinX(), obsModel.getDrMinY(), obsModel.getDrMaxX(),
+				obsModel.getDrMaxY())) {
+			isDetected = true;
+		}
+
+		return isDetected;
+	}
+
+}
+
+class HearBeatReciver implements ProcessInput {
+
+	ProcessMonitorUI pmu;
+
+	public HearBeatReciver(ProcessMonitorUI pmu) {
+		this.pmu = pmu;
+	}
+
+	@Override
+	public String ProcessInput(DatagramPacket packet) {
+		String packetMessage = new String(packet.getData());
+		String message = packetMessage.substring(packetMessage.indexOf(':') + 1, packetMessage.indexOf(0));
+
+		String result = "Message:";
+		if (message.equals("setup")) {
+			System.out.println("Connection established with the drone...");
+			result += "connected";
+		} else {
+
+			try {
+				int runningProcesses = Integer.parseInt(message);
+				pmu.pmc.setRunningProcesses(runningProcesses);
+				pmu.pmc.repaint();
+
+			} catch (NumberFormatException e) {
+				System.out.println("Not a valid number");
+			}
+
+			result += "inzone";
+		}
+
+		return result;
+
+	}
+
 }

@@ -1,8 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
  * Send the data to the server (Heartbeat sender)
@@ -17,66 +14,154 @@ class Sender {
 	boolean sendMessage = true;
 	boolean connectionLost = false;
 
-	DroneMoveModel rmm;
-	ZoneModel zm;
-	CheckDroneConnection chkc;
-
-	Sender(String address, int port, DroneMoveModel rmm) {
-		IO = new HearbeatNetWorkIO(address, port, zm);
+	Sender(String address, int port) {
+		IO = new HearbeatNetWorkIO(address, port);
 		inFromUser = new BufferedReader(new InputStreamReader(System.in));
-		this.rmm = rmm;
-		this.zm = rmm.zm;
-		this.chkc = new CheckDroneConnection(this.rmm);
+	}
+}
 
+class HeartBeatSender extends Sender implements Runnable {
+
+	ProcessController pc;
+
+	HeartBeatSender(String address, int port, ProcessController pc) {
+		super(address, port);
+		this.pc = pc;
 	}
 
-	void start() {
-		IO.sendMessage("Connection:setup");
+	@Override
+	public void run() {
+		IO.sendMessage("HearbeatConnection:setup");
 
 		if (!IO.getMessage().isEmpty()) {
 			System.out.println("Connected to remote controller...");
-			startGame();
-		}
-
-		IO.sendMessage("Connection:quit");
-	}
-
-	private void startGame() {
-		chkc.start();
-		while (true) {
-			if (!this.rmm.connectionLost) {
+			while (true) {
 				IO.sendMessage("Message:" + getLine());
-				String ms = new String(ProcessCommand(IO.getMessage()));
-
-				if (ms.equals("inzone")) {
-					this.rmm.setConnectionLost(false);
-				} else {
-					this.rmm.setConnectionLost(true);
+				new String(ProcessCommand(IO.getMessage()));
+				try {
+					Thread.sleep(4000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 				}
 			}
 		}
+
+		IO.sendMessage("Connection:quit");
+
 	}
 
 	private String getLine() {
-		return "Drone location: X = " + this.zm.getLastX() + " Y = " + this.zm.getLastY();
+		return "" + pc.getRunningProcesses();
 	}
 
 	private String ProcessCommand(String Command) {
 		String external = Command.substring(Command.indexOf(":") + 1, Command.indexOf(0));
 		return external;
 	}
+
+}
+
+class SecondProcessManipulator extends Sender implements Runnable, ObstacleDetectImpl {
+
+	ObstacleDetector obstacleDetector;
+	DroneMoveModel dmm;
+	boolean isRunning = true;
+	boolean isApproachingDrone = false;
+	String processName;
+
+	int processDeath;
+
+	public int getProcessDeath() {
+		return processDeath;
+	}
+
+	public void setProcessDeath(int processDeath) {
+		this.processDeath = processDeath;
+	}
+
+	SecondProcessManipulator(String address, int port, ObstacleDetector obstacleDetector, DroneMoveModel dmm,
+			String processName) {
+		super(address, port);
+		this.obstacleDetector = obstacleDetector;
+		this.dmm = dmm;
+		this.processName = processName;
+	}
+
+	@Override
+	public void run() {
+		IO.sendMessage("Connection:setup");
+
+		if (!IO.getMessage().isEmpty()) {
+			System.out.println("Connected to remote controller...");
+			int counter = 0;
+			while (isRunning) {
+				IO.sendMessage("Message:" + getLine());
+				ProcessCommand(IO.getMessage());
+
+				try {
+					Thread.sleep(1000);
+
+					counter++;
+					if (counter == this.getProcessDeath()) {
+						this.isRunning = false;
+					}
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+
+		IO.sendMessage("Connection:quit");
+
+	}
+
+	private String getLine() {
+		String data = new ObstacleDetectModel(obstacleDetector.obstacle, dmm).serializeData();
+		return data;
+	}
+
+	private boolean ProcessCommand(String Command) {
+
+		if (Command.startsWith("ApproachingDrone")) {
+			isApproachingDrone = true;
+			return true;
+		} else {
+			isApproachingDrone = false;
+			return false;
+		}
+
+	}
+
+	@Override
+	public boolean detectedObstacle() {
+		return isApproachingDrone;
+	}
+
+	@Override
+	public boolean isRunning() {
+		return this.isRunning;
+	}
+
+	@Override
+	public void print() {
+		// TODO Auto-generated method stub
+		System.out.println("Current running process is " + processName);
+	}
+
 }
 
 class HearbeatNetWorkIO {
+
 	DatagramSocket clientSocket;
 	int port;
 	DatagramPacket Packet;
 	InetAddress ServerIPAddress;
 	byte[] Data;
 
-	int lastUpdateTime;
+	HearbeatNetWorkIO(String address, int port) {
 
-	HearbeatNetWorkIO(String address, int port, ZoneModel zm) {
 		this.port = port;
 		try {
 			ServerIPAddress = InetAddress.getByName(address);
@@ -115,35 +200,4 @@ class HearbeatNetWorkIO {
 		}
 	}
 
-}
-
-class CheckDroneConnection extends Thread {
-
-	DateFormat df = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
-	DroneMoveModel rmm;
-
-	CheckDroneConnection(DroneMoveModel rmm) {
-		this.rmm = rmm;
-	}
-
-	public void run() {
-		while (true) {
-			try {
-				sleep(3000);
-				if (rmm.connectionLost || !rmm.zm.isDroneInZone) {
-					printError();
-					rmm.setConnectionLost(true);
-				}
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-		}
-
-	}
-
-	public void printError() {
-		System.err.println("***** [ Drone ] FAIL: Connection Lost at " + df.format(new Date()) + "*****\n");
-	}
 }

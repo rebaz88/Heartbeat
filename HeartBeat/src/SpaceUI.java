@@ -1,7 +1,7 @@
 import javax.swing.JFrame;
 
-public class SpaceUI extends JFrame{
-	
+public class SpaceUI extends JFrame {
+
 	/**
 	 * 
 	 */
@@ -10,7 +10,7 @@ public class SpaceUI extends JFrame{
 	public SpaceUI() {
 		super("Drone Demo");
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setSize(900,700);
+		setSize(900, 700);
 		setLocationRelativeTo(null);
 	}
 
