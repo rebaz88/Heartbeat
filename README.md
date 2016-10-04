@@ -3,12 +3,13 @@
 A hearbeat implementation on a drone.
 
 #Quality Attributes
-- RQ1: The system shall be able to communicate. If the drone communication is lost, the drone shall be able to go back to the previous known locations.
-- RQ2: The system shall be able to provide backup process when the drone flight system is down so that it can control the movement of the drone with in the flying zone untill the main process back to running again
+- RQ1: The system shall be able to detect obstacles in order to prevent it from crashing. 
+- RQ2: The system shall be able to switch a backup obstacle detector when the main detector fails in order to prevent failure of the system.
 
 #Features
 - The drone sends its location to the controller
-- The controller share listening to the notifications and location from the drone
+- The drone detects obstacles
+- Switching to backup process when the main detector process is dead.
 
 #Installation & Running
 - Clone the repository
@@ -16,15 +17,15 @@ A hearbeat implementation on a drone.
 - javac *.java
 - java RemoteController
 
-######Open a new terminal navigate to src directory again
+######Open a new terminal navigate to src directory 
+- java MainObstacleDetector
+
+######Open a new terminal navigate to src directory 
 - java DroneStarter
 
 #Usage:
 
-- Press S in order to switch the drone to move out of the zone
-- Press T in order to move the drone again. The contrller should not be down
-- Terminate the controller
-  - If the drone is out of the zone, it should automatically return to the zone
-  - If the drone is in the zone, it should remain in it is place and an alarm will
-  be shown in the middle of the drone as a big red circle.
-
+- Use the arrow keys to move the drone towards the yellow zone(Warning zone).
+- The drone should stop moving when reaching the yellow zone.
+- Use arrow keys to move the drone again.
+- The MainObstacleDetectore shows it is crash time.
