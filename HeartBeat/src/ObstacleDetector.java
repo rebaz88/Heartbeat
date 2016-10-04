@@ -18,14 +18,6 @@ public class ObstacleDetector extends Thread implements ObstacleDetectImpl {
 
 	int processDeath;
 
-	public int getProcessDeath() {
-		return processDeath;
-	}
-
-	public void setProcessDeath(int processDeath) {
-		this.processDeath = processDeath;
-	}
-
 	public ObstacleDetector(Obstacle obstacle, DroneMoveModel dmm, String processName) {
 		this.obstacle = obstacle;
 		this.sa = obstacle.sa;
@@ -61,15 +53,10 @@ public class ObstacleDetector extends Thread implements ObstacleDetectImpl {
 	}
 
 	public void run() {
-		int counter = 0;
 		while (this.isRunning) {
 			detectedObstacle();
 			try {
 				sleep(1000);
-				counter++;
-				if (counter == this.getProcessDeath()) {
-					this.isRunning = false;
-				}
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

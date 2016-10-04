@@ -25,16 +25,16 @@ class ProcessMonitorComponent extends JComponent{
 		
 		for(int i = 0; i < 2; i++) {
 			g.setColor(Color.BLACK);
-			g.drawString(processes[i], 170 - (i * 70), 60);
+			g.drawString(processes[i], 90, 60 + (i * 40));
 			g.setColor(Color.RED);
-			g.fillRect(170 - (i * 70), 80, 30, 60);
+			g.fillRect(140, 40 + (i * 45), 70, 20);
 		}
 		
 		for(int i = 0; i < getRunningProcesses(); i++) {
 			g.setColor(Color.BLACK);
-			g.drawString(processes[i], 170 - (i * 70), 60);
+			g.drawString(processes[i], 90, 60 + (i * 40));
 			g.setColor(Color.GREEN);
-			g.fillRect(170 - (i * 70), 80, 30, 60);
+			g.fillRect(140, 40 + (i * 45), 70, 20);
 		}
 		
 	}

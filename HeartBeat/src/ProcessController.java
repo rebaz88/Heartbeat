@@ -7,11 +7,13 @@ public class ProcessController extends Thread {
 	ObstacleDetectImpl runningProcess;
 	DroneMoveModel dmm;
 
-	ProcessController(ObstacleDetector firstProcess, SecondProcessManipulator secondProcess, DroneMoveModel dmm) {
+	ProcessController(MainProcessManipulator mainProcess, ObstacleDetector secondProcess, DroneMoveModel dmm) {
 
 		processes = new ArrayList<ObstacleDetectImpl>();
-		processes.add(firstProcess);
-		processes.add(secondProcess);
+		
+		processes.add(0, mainProcess);
+		processes.add(1, secondProcess);
+		
 
 		this.dmm = dmm;
 
@@ -20,13 +22,17 @@ public class ProcessController extends Thread {
 	public void run() {
 
 		while (processes.size() > 0) {
-
+			runningProcess = null;
 			for (int i = 0; i < processes.size(); i++) {
-				if (processes.get(i).isRunning())
+				if (processes.get(i).isRunning()) {
 					runningProcess = processes.get(i);
+					break;
+				}
+				else
+					processes.remove(i);
 			}
 
-			if (runningProcess.isRunning()) {
+			if (runningProcess != null) {
 				if (runningProcess.detectedObstacle()) {
 
 					System.err.println("Approaching obstales");

@@ -14,8 +14,8 @@ class Sender {
 	boolean sendMessage = true;
 	boolean connectionLost = false;
 
-	Sender(String address, int port) {
-		IO = new HearbeatNetWorkIO(address, port);
+	Sender(String address, int port, int timeout) {
+		IO = new HearbeatNetWorkIO(address, port, timeout);
 		inFromUser = new BufferedReader(new InputStreamReader(System.in));
 	}
 }
@@ -23,9 +23,9 @@ class Sender {
 class HeartBeatSender extends Sender implements Runnable {
 
 	ProcessController pc;
-
-	HeartBeatSender(String address, int port, ProcessController pc) {
-		super(address, port);
+	int timeout;
+	HeartBeatSender(String address, int port, int timeout, ProcessController pc) {
+		super(address, port, timeout);
 		this.pc = pc;
 	}
 
@@ -62,7 +62,7 @@ class HeartBeatSender extends Sender implements Runnable {
 
 }
 
-class SecondProcessManipulator extends Sender implements Runnable, ObstacleDetectImpl {
+class MainProcessManipulator extends Sender implements Runnable, ObstacleDetectImpl {
 
 	ObstacleDetector obstacleDetector;
 	DroneMoveModel dmm;
@@ -70,19 +70,9 @@ class SecondProcessManipulator extends Sender implements Runnable, ObstacleDetec
 	boolean isApproachingDrone = false;
 	String processName;
 
-	int processDeath;
-
-	public int getProcessDeath() {
-		return processDeath;
-	}
-
-	public void setProcessDeath(int processDeath) {
-		this.processDeath = processDeath;
-	}
-
-	SecondProcessManipulator(String address, int port, ObstacleDetector obstacleDetector, DroneMoveModel dmm,
+	MainProcessManipulator(String address, int port, int timeout, ObstacleDetector obstacleDetector, DroneMoveModel dmm,
 			String processName) {
-		super(address, port);
+		super(address, port, timeout);
 		this.obstacleDetector = obstacleDetector;
 		this.dmm = dmm;
 		this.processName = processName;
@@ -94,18 +84,19 @@ class SecondProcessManipulator extends Sender implements Runnable, ObstacleDetec
 
 		if (!IO.getMessage().isEmpty()) {
 			System.out.println("Connected to remote controller...");
-			int counter = 0;
+			this.isRunning = true;
+			
 			while (isRunning) {
 				IO.sendMessage("Message:" + getLine());
-				ProcessCommand(IO.getMessage());
-
+				isRunning = false;
+				String message = IO.getMessage();
+				if(!message.isEmpty()) {
+					isRunning = true;
+					ProcessCommand(message);
+				} 
+				
 				try {
 					Thread.sleep(1000);
-
-					counter++;
-					if (counter == this.getProcessDeath()) {
-						this.isRunning = false;
-					}
 				} catch (InterruptedException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -160,7 +151,7 @@ class HearbeatNetWorkIO {
 	InetAddress ServerIPAddress;
 	byte[] Data;
 
-	HearbeatNetWorkIO(String address, int port) {
+	HearbeatNetWorkIO(String address, int port, int timeout) {
 
 		this.port = port;
 		try {
@@ -170,7 +161,9 @@ class HearbeatNetWorkIO {
 			System.exit(1);
 		}
 		try {
+			
 			clientSocket = new DatagramSocket();
+			clientSocket.setSoTimeout(timeout);
 		} catch (SocketException e) {
 			System.err.println("Error: Socket could not be created");
 			System.exit(1);

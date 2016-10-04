@@ -15,8 +15,8 @@ public class RemoteController {
 
 	public static void main(String[] args) {
 
-		Reciever secondProcess = new Reciever(PROCESS_PORT, new SecondProcess());
-		secondProcess.start();
+//		Reciever secondProcess = new Reciever(PROCESS_PORT, new SecondProcess());
+//		secondProcess.start();
 
 		ProcessMonitorUI pmu = new ProcessMonitorUI();
 		pmu.setVisible(true);

@@ -1,5 +1,3 @@
-import java.util.concurrent.ThreadLocalRandom;
-
 /**
  * Drone starter
  * 
@@ -13,34 +11,34 @@ public class DroneStarter {
 
 	public static void main(String[] args) throws Exception {
 
-		int firstProcessDeath = ThreadLocalRandom.current().nextInt(20, 25);
-		int secondProcessDeath = ThreadLocalRandom.current().nextInt(40, 45);
-
 		SpaceUI frame = new SpaceUI();
 		ZoneModel zm = new ZoneModel(frame.getWidth(), frame.getHeight());
 
 		final DroneMoveModel dmm = new DroneMoveModel(zm);
-		Drone tr = new Drone(dmm, firstProcessDeath, secondProcessDeath);
+		Drone tr = new Drone(dmm);
 
 		frame.addKeyListener(tr.new RobotKeyHandler());
 		frame.add(tr);
 
 		frame.setVisible(true);
 
-		ObstacleDetector obstacleDetector = new ObstacleDetector(tr.obstacle, dmm, "First Process");
-		obstacleDetector.setProcessDeath(firstProcessDeath);
-		obstacleDetector.start();
+		ObstacleDetector obstacleDetector = new ObstacleDetector(tr.obstacle, dmm, "Second Process");
+		
 
-		SecondProcessManipulator secondProcess = new SecondProcessManipulator("localhost", PROCESS_PORT,
-				obstacleDetector, dmm, "Second Process");
-		secondProcess.setProcessDeath(secondProcessDeath);
-		Thread secondProcessThread = new Thread(secondProcess);
-		secondProcessThread.start();
+		MainProcessManipulator mainProcess = new MainProcessManipulator("localhost", PROCESS_PORT,
+				2000, obstacleDetector, dmm, "Main Process");
+		
+		Thread mainProcessThread = new Thread(mainProcess);
+		mainProcessThread.start();
+		
+		
+		ObstacleDetector secondProcess = obstacleDetector;
+		secondProcess.start();
 
-		ProcessController pc = new ProcessController(obstacleDetector, secondProcess, dmm);
+		ProcessController pc = new ProcessController(mainProcess, secondProcess, dmm);
 		pc.start();
 
-		HeartBeatSender heartBeatSender = new HeartBeatSender("localhost", HEARTBEAT_PORT, pc);
+		HeartBeatSender heartBeatSender = new HeartBeatSender("localhost", HEARTBEAT_PORT, 0, pc);
 		Thread hbSenderThread = new Thread(heartBeatSender);
 		hbSenderThread.start();
 

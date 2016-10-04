@@ -26,16 +26,11 @@ public class Drone extends JComponent {
 	int blinkChangeInterval = 0;
 	boolean warningBlinking = false;
 	Color warningColor = Color.RED;
-	int firstProcessDeath;
-	int secondProcessDeath;
 
-	public Drone(DroneMoveModel rmm, int firstProcessDeath, int secondProcessDeath) {
+	public Drone(DroneMoveModel rmm) {
 
 		this.rmm = rmm;
 		obstacle = new Obstacle(rmm.zm);
-
-		this.firstProcessDeath = firstProcessDeath;
-		this.secondProcessDeath = secondProcessDeath;
 
 		legColors.add(Color.BLUE);
 		legColors.add(Color.GREEN);
@@ -43,6 +38,7 @@ public class Drone extends JComponent {
 		legColors.add(Color.WHITE);
 
 		Thread animationThread = new Thread(new Runnable() {
+
 			public void run() {
 				while (true) {
 					repaint();
@@ -59,9 +55,6 @@ public class Drone extends JComponent {
 	}
 
 	public void paintComponent(Graphics g) {
-
-		g.drawString("Time of living main process " + firstProcessDeath, rmm.zm.getZoneMinX(), 30);
-		g.drawString("Time of living backup process " + secondProcessDeath, rmm.zm.getZoneMinX(), 60);
 
 		g.setColor(Color.PINK);
 		g.fillRect(rmm.zm.getZoneMinX(), rmm.zm.getZoneMinY(), rmm.zm.zoneWidth, rmm.zm.zoneHeight);
@@ -83,8 +76,8 @@ public class Drone extends JComponent {
 				rmm.setVelY();
 			}
 
-				rmm.setX(rmm.getX() + rmm.getVelX());
-				rmm.setY(rmm.getY() + rmm.getVelY());
+			rmm.setX(rmm.getX() + rmm.getVelX());
+			rmm.setY(rmm.getY() + rmm.getVelY());
 
 			rmm.setDistanceTraveled(rmm.getDistanceTraveled() + Math.abs(rmm.getX()));
 		}
@@ -129,6 +122,17 @@ public class Drone extends JComponent {
 
 			colorChangeInterval = 0;
 		}
+
+//		processesTimerCounter += 20;
+//		if (processesTimerCounter >= 1000) {
+//			processesTimerCounter = 0;
+//			
+//			if (firstProcessDeath > 0)
+//				firstProcessDeath -= 1;
+//			if (secondProcessDeath > 0)
+//				secondProcessDeath -= 1;
+//
+//		}
 	}
 
 	public void turnOnAlarm(Graphics2D gg, int interval) {
