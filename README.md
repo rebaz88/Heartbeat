@@ -31,5 +31,5 @@ A hearbeat implementation on a drone.
 - The MainObstacleDetectore shows it is crash time.
 
 #Contributors:
--Rebaz Saleh
--Wajdi Aljeddani
+- Rebaz Saleh
+- Wajdi Aljeddani
