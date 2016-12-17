@@ -3,7 +3,7 @@
 A hearbeat implementation on a drone.
 
 #Quality Attributes
-- RQ1: The system shall be able to detect obstacles in order to prevent it from crashing. 
+- RQ1: The system shall be able to detect obstacles in order to prevent it from crashing.
 - RQ2: The system shall be able to switch a backup obstacle detector when the main detector fails in order to prevent failure of the system.
 
 #Features
@@ -17,10 +17,10 @@ A hearbeat implementation on a drone.
 - javac *.java
 - java RemoteController
 
-######Open a new terminal navigate to src directory 
+######Open a new terminal navigate to src directory
 - java MainObstacleDetector
 
-######Open a new terminal navigate to src directory 
+######Open a new terminal navigate to src directory
 - java DroneStarter
 
 #Usage:
@@ -29,3 +29,7 @@ A hearbeat implementation on a drone.
 - The drone should stop moving when reaching the yellow zone.
 - Use arrow keys to move the drone again.
 - The MainObstacleDetectore shows it is crash time.
+
+#Contributors:
+-Rebaz Saleh
+-Wajdi Aljeddani
